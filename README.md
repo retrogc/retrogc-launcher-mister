@@ -92,3 +92,8 @@ cmake --build build-host
 
 Press Start 2P, VT323 and Inter (SIL Open Font License 1.1, see `assets/fonts/`), built into the
 binary.
+
+## License
+
+GPL-3.0 (see `LICENSE`), like the RetroGC launcher. Third-party code keeps its own license:
+LVGL (MIT), stb (public domain / MIT), nlohmann/json (MIT), and the fonts (OFL 1.1).
