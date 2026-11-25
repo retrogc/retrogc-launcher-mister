@@ -54,7 +54,9 @@ add_executable(retrogc-mister
     ${GEN}/font_inter.c)
 
 target_include_directories(retrogc-mister PRIVATE src third_party)
-target_compile_definitions(retrogc-mister PRIVATE RETROGC_VERSION="${PROJECT_VERSION}")
+# The release workflow passes -DRETROGC_VERSION=X.Y.Z
+set(RETROGC_VERSION "${PROJECT_VERSION}" CACHE STRING "Version shown by the launcher")
+target_compile_definitions(retrogc-mister PRIVATE RETROGC_VERSION="${RETROGC_VERSION}")
 target_compile_options(retrogc-mister PRIVATE -Wall -Wextra)
 target_link_libraries(retrogc-mister PRIVATE lvgl m)
 

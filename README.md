@@ -1,11 +1,17 @@
 # RetroGC Launcher for MiSTer FPGA (UI version)
 
+<div align="center">
+<img src="docs/mister-crt.jpg" alt="The RetroGC launcher on a MiSTer, on a Sony Trinitron CRT at 15 kHz" width="640" />
+<br /><sub>Caveman Ninja, on a Trinitron, at 15 kHz. Press A.</sub>
+</div>
+
 The Retro Game Card launcher screen on a MiSTer: insert a card, see its cover and details,
 and the game starts. It runs next to the stock `menu.rbf` and doesn't replace it. The stock
 MiSTer menu is always one button away.
 
-The script-only launcher (`retrogc.sh`, in `retrogc-launcher/Platforms/MisterFPGA`) is still
-available for anyone who prefers no screen. Only one of the two can be ON at a time.
+The script-only launcher (`retrogc.sh`, in
+[retrogc-launcher](https://github.com/retrogc/retrogc-launcher#-mister-fpga)) is still available
+for anyone who prefers no screen. Only one of the two can be ON at a time.
 
 ## How it works
 
@@ -52,7 +58,9 @@ pixels (512×224 shown 4:3) so the cover stays square.
 
 ## Install
 
-Copy to the SD card:
+Download `retrogc-launcher-mister.zip` from the
+[latest release](https://github.com/retrogc/retrogc-launcher-mister/releases/latest) and unzip it at
+the root of the SD card (`/media/fat`). Or copy the files by hand:
 
 | File | To |
 |---|---|
@@ -87,6 +95,9 @@ cmake --build build-host
 # One frame to a PNG, for any size / state
 ./build-host/retrogc-mister --screenshot shot.png --size 1280x720 --card /path/to/card --state ready
 ```
+
+Releases: run the **Build Release** workflow (Actions tab) with a version number. It builds the
+binary with the same toolchain and publishes `retrogc-launcher-mister.zip`, laid out like the SD card.
 
 ## Fonts
 

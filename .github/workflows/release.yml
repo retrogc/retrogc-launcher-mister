@@ -1,0 +1,84 @@
+name: Build Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. 1.0.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  # Same compiler as Main_MiSTer (its glibc is what the MiSTer image has)
+  TOOLCHAIN: gcc-arm-10.2-2020.11-x86_64-arm-none-linux-gnueabihf
+
+jobs:
+  build:
+    name: Build Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate version
+        run: |
+          if [[ ! "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid version: ${{ inputs.version }}"
+            echo "Version must be in the form X.Y.Z (for example 1.0.0)"
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install build tools
+        run: sudo apt-get update && sudo apt-get install -y ninja-build zip
+
+      - name: Cache the MiSTer toolchain
+        id: toolchain-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/toolchain/${{ env.TOOLCHAIN }}
+          key: ${{ env.TOOLCHAIN }}
+
+      - name: Download the MiSTer toolchain
+        if: steps.toolchain-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/toolchain
+          curl -fsSL -o /tmp/toolchain.tar.xz \
+            "https://developer.arm.com/-/media/Files/downloads/gnu-a/10.2-2020.11/binrel/${TOOLCHAIN}.tar.xz"
+          tar -xf /tmp/toolchain.tar.xz -C ~/toolchain
+
+      - name: Build
+        run: |
+          cmake -B build-mister -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE=cmake/mister-armhf.cmake \
+            -DMISTER_TOOLCHAIN_DIR=$HOME/toolchain/${TOOLCHAIN} \
+            -DRETROGC_VERSION=${{ inputs.version }}
+          cmake --build build-mister
+          file build-mister/retrogc-mister
+
+      # Laid out like the SD card: unzip at its root (/media/fat)
+      - name: Create ZIP
+        run: |
+          mkdir -p package/retrogc package/Scripts release
+          cp build-mister/retrogc-mister package/retrogc/
+          cp scripts/retrogc_ui.sh scripts/retrogc_ui_show.sh package/Scripts/
+          chmod a+x package/retrogc/retrogc-mister package/Scripts/*.sh
+          cp LICENSE README.md package/retrogc/
+          cd package
+          zip -r ../release/retrogc-launcher-mister.zip retrogc Scripts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ inputs.version }}
+          name: RetroGC Launcher for MiSTer v${{ inputs.version }}
+          generate_release_notes: true
+          body: |
+            Unzip `retrogc-launcher-mister.zip` at the root of the MiSTer SD card (`/media/fat`),
+            then run *Main menu → Scripts → retrogc_ui.sh* to turn the launcher ON.
+            If the script-only launcher (`retrogc.sh`) is ON, turn it OFF first.
+          files: |
+            release/retrogc-launcher-mister.zip
